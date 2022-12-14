@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strconv"
 )
-
+// C'était une filo enfaite
 type Fifo []byte
 
 func (f *Fifo) Push(v byte) {
