@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bytes"
 	"os"
 	"strconv"
 )
@@ -22,4 +23,10 @@ func BytesStringToInt(b []byte) int {
 	i, err := strconv.Atoi(s)
 	CheckErr(err)
 	return i
+}
+
+func GetStringDataFromFile(path string) string {
+	byteData := GetRawData(path)
+	buffer := bytes.NewBuffer(byteData)
+	return buffer.String()
 }
