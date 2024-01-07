@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"regexp"
 
 	"github.com/MartiTM/AdventOfCode2022/util"
@@ -12,21 +11,57 @@ import (
 func main() {
 	data := util.GetRawData("./2023/day_8/input")
 
-	instructions, currentNode := getPuzzleInput(data)
+	instructions, currentNodes := getPuzzleInput(data)
 
-	for !bytes.Equal(currentNode.name, []byte("ZZZ")) {
-		// fmt.Printf("%v\n", string(currentNode.name))
-		switch instructions.Read() {
-		case byte('L'):
-			currentNode = *currentNode.leftNode
-		case byte('R'):
-			currentNode = *currentNode.rightNode
-		default:
-			log.Fatal("KC")
+
+	for _, currentNode := range currentNodes {
+
+		fmt.Printf("----start node %s-------\n", currentNode.name)
+		for i := 0; i < 3; i++ {
+			for !bytes.Contains(currentNode.name, []byte("Z")) {
+				switch instructions.Read() {
+				case byte('L'):
+					currentNode = *currentNode.leftNode
+				case byte('R'):
+					currentNode = *currentNode.rightNode
+				}
+			}
+			fmt.Printf("node %s take %v steps\n", currentNode.name, instructions.steps)
+			switch instructions.Read() {
+			case byte('L'):
+				currentNode = *currentNode.leftNode
+			case byte('R'):
+				currentNode = *currentNode.rightNode
+			}
 		}
+
+		instructions.steps = 0
+		instructions.cursor = 0
 	}
 
-	fmt.Printf("%v steps\n", instructions.steps)
+	// PPCM on the 6 roads give us the awser
+	fmt.Printf("%v\n", 283*73*71*53*61*79*59)
+	
+
+	// Brut force methods not very conclusive
+	// for !isAllAtTheEnd(currentNodes) {
+	// 	instruction := instructions.Read()
+	// 	nextNodes := []Node{}
+	// 	for _, currentNode := range currentNodes {
+	// 		switch instruction {
+	// 		case byte('L'):
+	// 			nextNodes = append(nextNodes, *currentNode.leftNode)
+	// 		case byte('R'):
+	// 			nextNodes = append(nextNodes, *currentNode.rightNode)
+	// 		default:
+	// 			log.Fatal("KC")
+	// 		}
+	// 	}
+	// 	currentNodes = nextNodes
+	// 	if instructions.steps % 1000000 == 0 {
+	// 		fmt.Printf("%v\n", instructions.steps)
+	// 	}
+	// }
 }
 
 type Instruction struct {
@@ -52,16 +87,25 @@ type Node struct {
 	rightNode *Node
 }
 
-func getPuzzleInput(data []byte) (Instruction, Node) {
+func isAllAtTheEnd(nodes []Node) bool {
+	for _, node := range nodes {
+		if !bytes.Contains(node.name, []byte("Z")) {
+			return false
+		}
+	}
+	return true
+}
+
+func getPuzzleInput(data []byte) (Instruction, []Node) {
 	dataByLine := bytes.Split(data, []byte("\n"))
 
 	instruction := Instruction{dataByLine[0], 0, 0}
 
 	nodeMap := make(map[string]*Node)
 
-	regletter := regexp.MustCompile(`[A-Z]{3}`)
+	regletter := regexp.MustCompile(`[A-Z0-9]{3}`)
 
-	var rootNode Node
+	rootNodes := []Node{}
 
 	for i := 2; i < len(dataByLine); i++ {
 		line := dataByLine[i]
@@ -85,10 +129,10 @@ func getPuzzleInput(data []byte) (Instruction, Node) {
 		currentNode.leftNode = leftNode
 		currentNode.rightNode = rightNode
 
-		if bytes.Equal(currentNode.name, []byte("AAA")) {
-			rootNode = *currentNode
+		if bytes.Contains(currentNode.name, []byte("A")) {
+			rootNodes = append(rootNodes, *currentNode)
 		}
 	}
 
-	return instruction, rootNode
+	return instruction, rootNodes
 }
