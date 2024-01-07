@@ -13,22 +13,6 @@ type Hand struct {
 	bid int
 }
 
-func (h Hand) isBetter(other Hand) bool {
-	if h.getType() != other.getType() {
-		return h.getType() > other.getType()
-	}
-
-	for i, card := range h.cards {
-		if card == other.cards[i] {
-			continue
-		}
-		return cardToPoint(card) > cardToPoint(other.cards[i])
-	}
-
-	fmt.Printf("Aie Aie Aie\n")
-	return false
-}
-
 func (h Hand) getType() int {
 	cardMap := make(map[byte]int)
 	for _, card := range h.cards {
@@ -36,6 +20,26 @@ func (h Hand) getType() int {
 			cardMap[card]=0
 		}
 		cardMap[card]++
+	}
+
+	if len(cardMap) == 1 {
+		return 7
+	}
+
+	if nbJ, ok := cardMap[byte('J')]; ok {
+		highestCard := byte('J')
+		numberOfCard := 0
+		for card, nbCard := range cardMap {
+			if card == byte('J') {
+				continue
+			}
+			if nbCard > numberOfCard {
+				highestCard = card
+				numberOfCard = nbCard
+			}
+		}
+		cardMap[highestCard] += nbJ
+		delete(cardMap, byte('J'))
 	}
 
 	// Carte haute
@@ -70,12 +74,33 @@ func (h Hand) getType() int {
 	return 3
 }
 
+type ByHand []Hand
+
+func (a ByHand) Len() int           { return len(a) }
+func (a ByHand) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
+func (a ByHand) Less(i, j int) bool {
+	if a[i].getType() != a[j].getType() {
+		return a[i].getType() > a[j].getType()
+	}
+
+	for i, card := range a[i].cards {
+		if card == a[j].cards[i] {
+			continue
+		}
+		return cardToPoint(card) > cardToPoint(a[j].cards[i])
+	}
+
+	fmt.Printf("Aie Aie Aie\n")
+	return false
+}
+
 func main() {
 	data := util.GetRawData("./2023/day_7/input")
 
 	hands := rawDataToHands(data)
 
-	sort.Slice(hands, func(i, j int) bool {return hands[i].isBetter(hands[j])})
+	sort.Sort(ByHand(hands))
 
 	total := 0
 
@@ -108,7 +133,7 @@ func cardToPoint(card byte) int {
 	case byte('Q'):
 		return 12
 	case byte('J'):
-		return 11
+		return 1
 	case byte('T'):
 		return 10		
 	case byte('9'):
