@@ -30,3 +30,15 @@ func GetStringDataFromFile(path string) string {
 	buffer := bytes.NewBuffer(byteData)
 	return buffer.String()
 }
+
+func StringsToInt(s []string) []int {
+	result := []int{}
+
+	for _, val := range s {
+		v, err := strconv.Atoi(val)
+		CheckErr(err)
+		result = append(result, v)
+	}
+
+	return result
+}
