@@ -43,14 +43,45 @@ func (r Report) getNextValue() int {
 	return addToTheNextVal
 }
 
+func (r Report) getPreviousValue() int {
+
+	firstValue := []int{r.values[0]}
+	currentArray := r.values
+	
+	for(!isTheSame(currentArray)) {
+		nextArray := []int{}
+		var oldVal int
+		
+		for i, val := range currentArray {
+			if i == 0 {
+				oldVal = val
+				continue
+			}
+	
+			nextArray = append(nextArray, val - oldVal)
+	
+			oldVal = val
+		}
+	
+		currentArray = nextArray
+		firstValue = append(firstValue, nextArray[0])
+	}
+
+	addToTheNextVal := firstValue[len(firstValue)-1]
+	for i := len(firstValue)-2; i >= 0; i-- {
+		addToTheNextVal = firstValue[i] - addToTheNextVal
+	}
+
+	return addToTheNextVal
+}
+
 func main() {
 	data := util.GetStringDataFromFile("./2023/day_9/input")
 
 	total := 0
 	for _, line := range strings.Split(data, "\n") {
 		report := Report{util.StringsToInt(strings.Split(line, " "))}
-		
-		next_value := report.getNextValue()
+		next_value := report.getPreviousValue()
 
 		total += next_value
 	}
